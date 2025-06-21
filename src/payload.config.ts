@@ -47,12 +47,14 @@ const cloudinaryAdapter = () => ({
         }
       )
 
-      if (!file.buffer) {
-        return reject(new Error('File buffer is missing'))
-      }
+    const fileWithBuffer = file as FileData & { buffer: Buffer }
 
-      stream.end(file.buffer)
-    })
+    if (!fileWithBuffer.buffer) {
+      return reject(new Error('File buffer is missing'))
+    }
+
+    stream.end(fileWithBuffer.buffer)
+  })
 
     return {
       ...data,
