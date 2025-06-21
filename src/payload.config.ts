@@ -1,8 +1,7 @@
-// storage-adapter-import-placeholder
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { buildConfig } from 'payload'
+import { buildConfig, FileData, } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import { cloudStoragePlugin } from '@payloadcms/plugin-cloud-storage'
@@ -22,25 +21,46 @@ cloudinary.config({
 
 const cloudinaryAdapter = () => ({
   name: 'cloudinary-adapter',
-  async handleUpload({ file, collection, data }) {
+  async handleUpload({
+    file,
+    collection,
+    data,
+  }: {
+    file: FileData
+    collection: string
+    data: Record<string, unknown>
+  }) {
     const filenameWithoutExt = file.filename.replace(/\.[^/.]+$/, '')
-    const uploadResult = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            public_id: `media/${filenameWithoutExt}`, 
-            resource_type: 'image',
-          },
-          (error, result) => {
-            if (error) reject(error)
+
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          public_id: `media/${filenameWithoutExt}`,
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) {
+            reject(error)
+          } else {
             resolve(result)
           }
-        )
-        .end(file.buffer)
+        }
+      )
+
+      if (!file.buffer) {
+        return reject(new Error('File buffer is missing'))
+      }
+
+      stream.end(file.buffer)
     })
-    return { ...data, url: uploadResult.secure_url }
+
+    return {
+      ...data,
+      url: (uploadResult as any).secure_url,
+    }
   },
-  async handleDelete({ filename }) {
+
+  async handleDelete({ filename }: { filename: string }) {
     const filenameWithoutExt = filename.replace(/\.[^/.]+$/, '')
     await cloudinary.uploader.destroy(`media/${filenameWithoutExt}`)
   },
