@@ -93,7 +93,8 @@ export default buildConfig({
           adapter: cloudinaryAdapter,
           disableLocalStorage: true,
           generateFileURL: ({ filename }: { filename: string | number  }) => {
-            const filenameWithoutExt = filename.replace(/\.[^/.]+$/, '')
+            const name = filename.toString()
+            const filenameWithoutExt = name.replace(/\.[^/.]+$/, '')
             return cloudinary.url(`media/${filenameWithoutExt}`, {
               secure: true,
               resource_type: 'image',
