@@ -92,7 +92,7 @@ export default buildConfig({
         [Media.slug]: {
           adapter: cloudinaryAdapter,
           disableLocalStorage: true,
-          generateFileURL: ({ filename }) => {
+          generateFileURL: ({ filename }: { filename: string | number  }) => {
             const filenameWithoutExt = filename.replace(/\.[^/.]+$/, '')
             return cloudinary.url(`media/${filenameWithoutExt}`, {
               secure: true,
