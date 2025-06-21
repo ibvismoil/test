@@ -1,13 +1,34 @@
-import type { CollectionConfig } from 'payload'
+import { CollectionConfig } from 'payload'
 
 export const Users: CollectionConfig = {
   slug: 'users',
+  auth: true,
   admin: {
     useAsTitle: 'email',
   },
-  auth: true,
   fields: [
-    // Email added by default
-    // Add more fields as needed
+    {
+      name: 'role',
+      type: 'select',
+      required: true,
+      defaultValue: 'user',
+      options: [
+        { label: 'User', value: 'user' },
+        { label: 'Admin', value: 'admin' },
+      ],
+    },
   ],
+  hooks: {
+    beforeChange: [
+      ({ data, req, operation }) => {
+        if (operation === 'create') {
+          // Только вручную через админку можно создать админа
+          if (!req.user) {
+            data.role = 'user'
+          }
+        }
+        return data
+      },
+    ],
+  },
 }
