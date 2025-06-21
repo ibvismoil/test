@@ -1,0 +1,84 @@
+// storage-adapter-import-placeholder
+import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import path from 'path'
+import { buildConfig } from 'payload'
+import { fileURLToPath } from 'url'
+import sharp from 'sharp'
+import { cloudStoragePlugin } from '@payloadcms/plugin-cloud-storage'
+import { v2 as cloudinary } from 'cloudinary'
+
+import { Users } from './collections/Users'
+import { Media } from './collections/Media'
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+const cloudinaryAdapter = () => ({
+  name: 'cloudinary-adapter',
+  async handleUpload({ file, collection, data }) {
+    const filenameWithoutExt = file.filename.replace(/\.[^/.]+$/, '')
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            public_id: `media/${filenameWithoutExt}`, 
+            resource_type: 'image',
+          },
+          (error, result) => {
+            if (error) reject(error)
+            resolve(result)
+          }
+        )
+        .end(file.buffer)
+    })
+    return { ...data, url: uploadResult.secure_url }
+  },
+  async handleDelete({ filename }) {
+    const filenameWithoutExt = filename.replace(/\.[^/.]+$/, '')
+    await cloudinary.uploader.destroy(`media/${filenameWithoutExt}`)
+  },
+})
+
+export default buildConfig({
+  admin: {
+    user: Users.slug,
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
+  },
+  collections: [Users, Media],
+  editor: lexicalEditor(),
+  secret: process.env.PAYLOAD_SECRET || '',
+  typescript: {
+    outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  db: mongooseAdapter({
+    url: process.env.DATABASE_URI || '',
+  }),
+  sharp,
+  cors: ['*'],
+  plugins: [
+    cloudStoragePlugin({
+      collections: {
+        [Media.slug]: {
+          adapter: cloudinaryAdapter,
+          disableLocalStorage: true,
+          generateFileURL: ({ filename }) => {
+            const filenameWithoutExt = filename.replace(/\.[^/.]+$/, '')
+            return cloudinary.url(`media/${filenameWithoutExt}`, {
+              secure: true,
+              resource_type: 'image',
+            })
+          },
+        },
+      },
+    }),
+  ],
+})
