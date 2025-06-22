@@ -6,6 +6,12 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
   },
+  access: {
+      create: ({ req }) => req.user?.role === 'admin',
+      update: ({ req }) => req.user?.role === 'admin',
+      delete: ({ req }) => req.user?.role === 'admin',
+      read: () => true,
+    },
   fields: [
     {
       name: 'role',
@@ -22,7 +28,7 @@ export const Users: CollectionConfig = {
     beforeChange: [
       ({ data, req, operation }) => {
         if (operation === 'create') {
-          // Только вручную через админку можно создать админа
+
           if (!req.user) {
             data.role = 'user'
           }
