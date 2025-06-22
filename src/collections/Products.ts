@@ -40,6 +40,12 @@ export const Products: CollectionConfig = {
       relationTo: 'categories',  
       hasMany: true,
       required: true,
+    },{
+      name: 'Car Model',
+      type: 'relationship',
+      relationTo: 'carmodel',  
+      hasMany: true,
+      required: true,
     },
   ],
 }

@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     products: Product;
     categories: Category;
+    carmodel: Carmodel;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -81,6 +82,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    carmodel: CarmodelSelect<false> | CarmodelSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -166,6 +168,7 @@ export interface Product {
   price: number;
   image?: (string | null) | Media;
   category: (string | Category)[];
+  'Car Model': (string | Carmodel)[];
   updatedAt: string;
   createdAt: string;
 }
@@ -174,6 +177,16 @@ export interface Product {
  * via the `definition` "categories".
  */
 export interface Category {
+  id: string;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carmodel".
+ */
+export interface Carmodel {
   id: string;
   name: string;
   updatedAt: string;
@@ -201,6 +214,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'carmodel';
+        value: string | Carmodel;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -289,6 +306,7 @@ export interface ProductsSelect<T extends boolean = true> {
   price?: T;
   image?: T;
   category?: T;
+  'Car Model'?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -297,6 +315,15 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carmodel_select".
+ */
+export interface CarmodelSelect<T extends boolean = true> {
   name?: T;
   updatedAt?: T;
   createdAt?: T;
