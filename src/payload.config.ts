@@ -86,7 +86,7 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
-  cors: ['http://localhost:5173'],
+  cors:'*',
   sharp,
   plugins: [
     cloudStoragePlugin({
